@@ -1,5 +1,6 @@
 import numpy as np
 from collections import Counter
+import math
 
 # ================================================
 # Estrutura do No (fornecida)
@@ -21,6 +22,16 @@ def gini(y):
     contagem = Counter(y)
     proporcoes = [count / len(y) for count in contagem.values()]
     return 1.0 - sum(p ** 2 for p in proporcoes)
+
+# ================================================
+# Função de impureza: Entropia
+
+def entropia(y):
+    if len(y) == 0:
+        return 0.0
+    contagem = Counter(y)
+    proporcoes = [count / len(y) for count in contagem.values()]
+    return - sum(p * math.log2(p) for p in proporcoes)
 
 # ================================================
 # Classe majoritario (folha)
@@ -59,8 +70,8 @@ def impureza_media_ponderada(dados_esq, dados_dir):
     n = len(y_esq) + len(y_dir)
     if n == 0:
         return 0.0
-    i_esq = gini(y_esq) if len(y_esq) > 0 else 0.0
-    i_dir = gini(y_dir) if len(y_dir) > 0 else 0.0
+    i_esq = entropia(y_esq) if len(y_esq) > 0 else 0.0
+    i_dir = entropia(y_dir) if len(y_dir) > 0 else 0.0
     return (len(y_esq) / n) * i_esq + (len(y_dir) / n) * i_dir
 
 # ================================================
@@ -138,6 +149,26 @@ def imprimir_arvore(no, indent=""):
     imprimir_arvore(no.direita, indent = "  ")
 
 # ================================================
+# Função para definir uma classe a partir de uma unidade de amostra
+
+def definir_classe(no, valor):
+    if no.classe is not None:
+        print(f"Classe do valor {valor}: {no.classe}")
+        return
+    
+    x1, x2 = valor
+    if no.atributo == 0:
+        corte = x1
+    else:
+        corte = x2
+
+    if corte <= no.corte:
+        definir_classe(no.esquerda, valor)
+    else:
+        definir_classe(no.direita, valor)
+
+
+# ================================================
 # Dados do exemplo (exatamento como no texto)
 X = np.array([
     [1, 2], # 1
@@ -157,7 +188,9 @@ dados = (X, y)
 # ================================================
 # Construir e exibir a arvore
 # ================================================
-print("Construindo arvore de decisão (CART com Gini)...\n")
+#print("Construindo arvore de decisão (CART com Entropia)...\n")
 arvore = construir_arvore(dados, max_profundidade=None)
-print("Arvore de decisão construida:")
-imprimir_arvore(arvore)
+#print("Arvore de decisão construida:")
+#imprimir_arvore(arvore)
+
+definir_classe(arvore, [5, 4])
